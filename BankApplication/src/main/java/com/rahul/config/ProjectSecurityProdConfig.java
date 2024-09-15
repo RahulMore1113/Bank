@@ -13,8 +13,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
 @Configuration
-@Profile("!prod")
-public class ProjectSecurityConfig {
+@Profile("prod")
+public class ProjectSecurityProdConfig {
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -26,7 +26,7 @@ public class ProjectSecurityConfig {
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
 
-        return http.build();
+		return http.build();
 
 	}
 
