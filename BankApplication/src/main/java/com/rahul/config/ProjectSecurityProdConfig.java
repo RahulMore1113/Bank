@@ -12,6 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
+import com.rahul.exceptionHandling.CustomeAccessDeniedHandler;
+import com.rahul.exceptionHandling.CustomeBasicAuthenticationEntryPoint;
+
 @Configuration
 @Profile("prod")
 public class ProjectSecurityProdConfig {
@@ -19,12 +22,21 @@ public class ProjectSecurityProdConfig {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(AbstractHttpConfigurer::disable)
+        http.sessionManagement(smc -> smc
+                        .invalidSessionUrl("/invalidSession")
+                        .maximumSessions(5)
+                        .maxSessionsPreventsLogin(true))
+                .requiresChannel(rcc -> rcc
+                        .anyRequest().requiresSecure())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
                         .requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans").authenticated()
-                        .requestMatchers("/contacts", "/notices", "/error", "/register").permitAll())
+                        .requestMatchers("/contacts", "/notices", "/error", "/register", "/invalidSession").permitAll())
                 .formLogin(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(hbc -> hbc
+                        .authenticationEntryPoint(new CustomeBasicAuthenticationEntryPoint()))
+                .exceptionHandling(ehc -> ehc
+                        .accessDeniedHandler(new CustomeAccessDeniedHandler()));
 
 		return http.build();
 
